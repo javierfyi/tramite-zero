@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Multi-tenancy: cada municipio es un tenant ─────────────────────────────
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String   // Nombre del municipio
+  slug      String   @unique // URL-friendly identifier
+  state     String   // Estado (e.g., "Jalisco")
+  logoUrl   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  tramites    Tramite[]
+  submissions TramiteSubmission[]
+
+  @@map("tenants")
+}
+
+// ─── Usuarios ───────────────────────────────────────────────────────────────
+
+enum UserRole {
+  CITIZEN
+  OFFICER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  role          UserRole  @default(CITIZEN)
+  emailVerified DateTime?
+  image         String?
+  tenantId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+  submissions   TramiteSubmission[]
+  approvalSteps ApprovalStep[]     @relation("AssignedOfficer")
+  notifications Notification[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+// ─── Trámites (definición del tipo de trámite) ──────────────────────────────
+
+enum TramiteStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Tramite {
+  id          String        @id @default(cuid())
+  name        String        // e.g., "Licencia de Construcción"
+  slug        String
+  description String?
+  category    String?
+  status      TramiteStatus @default(DRAFT)
+  estimatedDays Int?        // Días estimados para resolución
+  cost        Decimal?      @db.Decimal(10, 2)
+  tenantId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  formFields  FormField[]
+  submissions TramiteSubmission[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("tramites")
+}
+
+// ─── Campos dinámicos del formulario ────────────────────────────────────────
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  EMAIL
+  PHONE
+  DATE
+  SELECT
+  CHECKBOX
+  FILE
+  CURP
+  RFC
+}
+
+model FormField {
+  id          String    @id @default(cuid())
+  tramiteId   String
+  label       String
+  name        String    // field key in submission data
+  type        FieldType @default(TEXT)
+  placeholder String?
+  helpText    String?
+  isRequired  Boolean   @default(false)
+  options     Json?     // For SELECT fields: [{value, label}]
+  validation  Json?     // Zod-compatible validation rules
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tramite     Tramite   @relation(fields: [tramiteId], references: [id], onDelete: Cascade)
+
+  @@index([tramiteId])
+  @@map("form_fields")
+}
+
+// ─── Solicitudes (submissions de ciudadanos) ────────────────────────────────
+
+enum SubmissionStatus {
+  PENDING
+  IN_REVIEW
+  REQUIRES_CHANGES
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model TramiteSubmission {
+  id           String           @id @default(cuid())
+  folio        String           @unique // Folio público para seguimiento
+  tramiteId    String
+  userId       String
+  tenantId     String
+  data         Json             // Form field values
+  attachments  Json?            // File references
+  status       SubmissionStatus @default(PENDING)
+  notes        String?
+  submittedAt  DateTime         @default(now())
+  resolvedAt   DateTime?
+  updatedAt    DateTime         @updatedAt
+
+  tramite      Tramite          @relation(fields: [tramiteId], references: [id])
+  user         User             @relation(fields: [userId], references: [id])
+  tenant       Tenant           @relation(fields: [tenantId], references: [id])
+  approvalSteps ApprovalStep[]
+  notifications Notification[]
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([tramiteId])
+  @@index([folio])
+  @@map("tramite_submissions")
+}
+
+// ─── Pasos de aprobación ────────────────────────────────────────────────────
+
+enum ApprovalAction {
+  APPROVED
+  REJECTED
+  RETURNED
+}
+
+model ApprovalStep {
+  id           String          @id @default(cuid())
+  submissionId String
+  officerId    String
+  stepOrder    Int
+  action       ApprovalAction?
+  comments     String?
+  actedAt      DateTime?
+  createdAt    DateTime        @default(now())
+
+  submission   TramiteSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  officer      User              @relation("AssignedOfficer", fields: [officerId], references: [id])
+
+  @@index([submissionId])
+  @@index([officerId])
+  @@map("approval_steps")
+}
+
+// ─── Notificaciones ─────────────────────────────────────────────────────────
+
+enum NotificationType {
+  STATUS_CHANGE
+  NEW_SUBMISSION
+  APPROVAL_REQUIRED
+  COMMENT
+  SYSTEM
+}
+
+model Notification {
+  id           String           @id @default(cuid())
+  userId       String
+  submissionId String?
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission   TramiteSubmission? @relation(fields: [submissionId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([submissionId])
+  @@map("notifications")
+}
