@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
+import { CommandMenu } from "@/components/command-menu";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,9 +17,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider delayDuration={0}>
+            {children}
+            <CommandMenu />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                className: "text-sm",
+              }}
+            />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
