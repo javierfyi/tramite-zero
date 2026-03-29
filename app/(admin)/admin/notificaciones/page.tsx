@@ -64,7 +64,7 @@ export default function AdminNotificacionesPage() {
   const unreadCount = mockNotifications.filter((n) => !n.isRead).length;
 
   return (
-    <div>
+    <div className="animate-page-enter">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>

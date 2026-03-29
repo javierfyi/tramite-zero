@@ -7,7 +7,7 @@ export default function TramitesPage() {
   const published = mockTramites.filter((t) => t.status === "PUBLISHED");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 animate-page-enter">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">
           Trámites disponibles
@@ -18,7 +18,7 @@ export default function TramitesPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="stagger-children grid grid-cols-1 gap-3 sm:grid-cols-2">
         {published.map((tramite) => (
           <Link
             key={tramite.id}

@@ -5,7 +5,11 @@ import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const Command = React.forwardRef<
@@ -23,10 +27,23 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
+/**
+ * CommandDialog — opens INSTANTLY with no animation.
+ * Emil principle: keyboard-initiated actions used 100+ times/day
+ * should never animate. Raycast has no open/close animation.
+ */
 function CommandDialog({ children, ...props }: DialogProps) {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0 shadow-lg">
+      <DialogContent
+        className={cn(
+          "overflow-hidden p-0 shadow-lg",
+          /* Kill all entry/exit animations — instant open/close */
+          "!duration-0 !animate-none",
+          "[&[data-state=open]]:!duration-0 [&[data-state=closed]]:!duration-0",
+          "[&[data-state=open]]:!animate-none [&[data-state=closed]]:!animate-none"
+        )}
+      >
         <DialogTitle>
           <VisuallyHidden>Búsqueda rápida</VisuallyHidden>
         </DialogTitle>

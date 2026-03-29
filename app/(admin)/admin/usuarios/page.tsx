@@ -30,7 +30,7 @@ const roleVariantMap: Record<
 
 export default function AdminUsuariosPage() {
   return (
-    <div>
+    <div className="animate-page-enter">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>

@@ -56,6 +56,16 @@
     "Liberation Mono", monospace;
 }
 
+/* ─── Emil Kowalski easing curves ────────────────────────────────────────── */
+:root {
+  /* Strong ease-out: starts fast, feels responsive (entries) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Strong ease-in-out: natural acceleration/deceleration (movement) */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* iOS-like drawer curve */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 /* Light mode — clean white, Linear-inspired */
 :root {
   --radius: 0.5rem;
@@ -154,15 +164,94 @@
     @apply text-base font-semibold tracking-tight;
   }
 
-  /* Smooth transitions on interactive elements */
-  a,
+  /* ─── Button press feedback (Emil: scale down on :active) ─────────────── */
   button,
-  [role="button"] {
-    @apply transition-colors duration-150;
+  [role="button"],
+  a.inline-flex {
+    transition: transform 160ms var(--ease-out), color 150ms ease,
+      background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active:not(:disabled),
+  a.inline-flex:active {
+    transform: scale(0.97);
+  }
+
+  /* Regular links and other interactive: color transitions only */
+  a:not(.inline-flex) {
+    transition: color 150ms ease, opacity 150ms ease;
   }
 
   /* Focus rings — accessible */
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
+
+  /* ─── Hover states: gate behind pointer: fine to avoid touch false positives */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift {
+      transition: transform 150ms var(--ease-out);
+    }
+    .hover-lift:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  /* ─── Reduced motion: respect user preference ────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ─── Tooltip instant on subsequent (Emil principle) ─────────────────── */
+  [data-instant] {
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ─── Page entry animation ───────────────────────────────────────────────── */
+/* Subtle fade + slide for page content — 200ms ease-out, staggered children */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 200ms var(--ease-out) both;
+}
+
+/* Staggered children for lists and grids */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: page-enter 250ms var(--ease-out) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(n+7) { animation-delay: 240ms; }
+
+/* ─── Skeleton pulse — subtler than default Tailwind ─────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-skeleton {
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

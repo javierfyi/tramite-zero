@@ -13,7 +13,7 @@ import {
 
 export default function AdminConfiguracionPage() {
   return (
-    <div>
+    <div className="animate-page-enter">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>

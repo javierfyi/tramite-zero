@@ -25,11 +25,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={400} skipDelayDuration={0}>
             {children}
             <CommandMenu />
             <Toaster
               position="bottom-right"
+              richColors
+              duration={4000}
               toastOptions={{
                 className: "text-sm",
               }}

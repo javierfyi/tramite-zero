@@ -37,7 +37,7 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <div>
+    <div className="animate-page-enter">
       {/* Hero */}
       <section className="mx-auto max-w-5xl px-4 py-20 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
@@ -85,7 +85,7 @@ export default function HomePage() {
 
       {/* Features */}
       <section className="mx-auto max-w-5xl px-4 py-16 sm:py-20">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="stagger-children grid grid-cols-1 gap-6 sm:grid-cols-3">
           {features.map((feature) => (
             <div
               key={feature.title}

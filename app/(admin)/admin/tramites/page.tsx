@@ -13,7 +13,7 @@ import { mockTramites, getStatusLabel, getStatusVariant } from "@/lib/mock-data"
 
 export default function AdminTramitesPage() {
   return (
-    <div>
+    <div className="animate-page-enter">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>

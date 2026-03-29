@@ -23,7 +23,7 @@ export default function SeguimientoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl px-4 py-8 animate-page-enter">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">
           Seguimiento de trámite
